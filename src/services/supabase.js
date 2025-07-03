@@ -364,5 +364,156 @@ export const DatabaseService = {
       console.error('Error getting chat history:', error);
       return { data: [], error };
     }
+  },
+
+  // Subjective Tests - New functionality
+  async createSubjectiveTest(testData) {
+    try {
+      const { data, error } = await supabase
+        .from('subjective_tests')
+        .insert([testData])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error creating subjective test:', error);
+      return { data: null, error };
+    }
+  },
+
+  async getSubjectiveTests(createdBy = null) {
+    try {
+      let query = supabase.from('subjective_tests').select(`
+        *,
+        created_by_user:users!subjective_tests_created_by_fkey(name),
+        document:documents(title, subject)
+      `);
+      
+      if (createdBy) {
+        query = query.eq('created_by', createdBy);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error getting subjective tests:', error);
+      return { data: null, error };
+    }
+  },
+
+  async updateSubjectiveTest(testId, updateData) {
+    try {
+      const { data, error } = await supabase
+        .from('subjective_tests')
+        .update(updateData)
+        .eq('id', testId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error updating subjective test:', error);
+      return { data: null, error };
+    }
+  },
+
+  async deleteSubjectiveTest(testId) {
+    try {
+      const { error } = await supabase
+        .from('subjective_tests')
+        .delete()
+        .eq('id', testId);
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error) {
+      console.error('Error deleting subjective test:', error);
+      return { error };
+    }
+  },
+
+  // Subjective Submissions
+  async submitSubjectiveTest(submissionData) {
+    try {
+      const { data, error } = await supabase
+        .from('subjective_submissions')
+        .insert([submissionData])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error submitting subjective test:', error);
+      return { data: null, error };
+    }
+  },
+
+  async getSubjectiveSubmissions(testId = null, userId = null) {
+    try {
+      let query = supabase.from('subjective_submissions').select(`
+        *,
+        test:subjective_tests(title, max_score),
+        user:users(name)
+      `);
+      
+      if (testId) {
+        query = query.eq('test_id', testId);
+      }
+      
+      if (userId) {
+        query = query.eq('user_id', userId);
+      }
+
+      const { data, error } = await query.order('submitted_at', { ascending: false });
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error getting subjective submissions:', error);
+      return { data: null, error };
+    }
+  },
+
+  async updateSubjectiveSubmission(submissionId, updateData) {
+    try {
+      const { data, error } = await supabase
+        .from('subjective_submissions')
+        .update(updateData)
+        .eq('id', submissionId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error updating subjective submission:', error);
+      return { data: null, error };
+    }
+  },
+
+  // Upload answer image (using base64 for now)
+  async uploadAnswerImage(file) {
+    try {
+      const fileReader = new FileReader();
+      
+      return new Promise((resolve, reject) => {
+        fileReader.onload = (e) => {
+          resolve({ data: { url: e.target.result }, error: null });
+        };
+        
+        fileReader.onerror = () => {
+          reject({ data: null, error: new Error('Failed to read image file') });
+        };
+        
+        fileReader.readAsDataURL(file);
+      });
+    } catch (error) {
+      console.error('Error uploading answer image:', error);
+      return { data: null, error };
+    }
   }
 };

@@ -11,7 +11,8 @@ import {
   Menu, 
   X,
   FileText,
-  Brain
+  Brain,
+  PenTool
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -33,6 +34,7 @@ const Layout = ({ children }) => {
         label: 'Dashboard' 
       },
       { path: '/quizzes', icon: Brain, label: 'Quizzes' },
+      { path: '/subjective-tests', icon: PenTool, label: 'Subjective Tests' },
       { path: '/profile', icon: User, label: 'Profile' }
     ];
 

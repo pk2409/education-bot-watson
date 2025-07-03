@@ -6,6 +6,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import DocumentHub from './pages/DocumentHub';
 import QuizCenter from './pages/QuizCenter';
+import SubjectiveTests from './pages/SubjectiveTests';
 import ChatBot from './pages/ChatBot';
 import Profile from './pages/Profile';
 import TestScreen from './pages/TestScreen';
@@ -39,6 +40,12 @@ function App() {
           <Route path="/quizzes" element={
             <ProtectedRoute>
               <QuizCenter />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/subjective-tests" element={
+            <ProtectedRoute>
+              <SubjectiveTests />
             </ProtectedRoute>
           } />
           
