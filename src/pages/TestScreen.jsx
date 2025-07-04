@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { TestTube, User, GraduationCap, Trash2, CheckCircle } from 'lucide-react';
+import { TestTube, User, GraduationCap, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 
 const TestScreen = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   // Generate a proper UUID v4 format for mock users
   const generateMockUUID = () => {
@@ -19,45 +20,60 @@ const TestScreen = () => {
 
   const mockLogin = async (role) => {
     setLoading(true);
+    setError('');
     
-    // Clear any existing auth
-    localStorage.removeItem('mockUser');
-    localStorage.removeItem('mockProfile');
-    
-    // Generate proper UUID for mock user
-    const mockUserId = generateMockUUID();
-    
-    // Mock user data with proper UUID format
-    const mockUser = {
-      id: mockUserId,
-      email: `${role}@test.com`,
-      created_at: new Date().toISOString()
-    };
+    try {
+      // Clear any existing auth
+      localStorage.removeItem('mockUser');
+      localStorage.removeItem('mockProfile');
+      
+      // Generate proper UUID for mock user
+      const mockUserId = generateMockUUID();
+      
+      // Mock user data with proper UUID format
+      const mockUser = {
+        id: mockUserId,
+        email: `${role}@test.com`,
+        created_at: new Date().toISOString()
+      };
 
-    const mockProfile = {
-      id: mockUserId,
-      name: role === 'student' ? 'Alex Student' : 'Prof. Smith',
-      email: mockUser.email,
-      role: role,
-      xp_points: role === 'student' ? 250 : 0,
-      badges: role === 'student' ? ['first-hundred'] : [],
-      created_at: new Date().toISOString()
-    };
+      const mockProfile = {
+        id: mockUserId,
+        name: role === 'student' ? 'Alex Student' : 'Prof. Smith',
+        email: mockUser.email,
+        role: role,
+        xp_points: role === 'student' ? 250 : 0,
+        badges: role === 'student' ? ['first-hundred'] : [],
+        created_at: new Date().toISOString()
+      };
 
-    // Store in localStorage for testing
-    localStorage.setItem('mockUser', JSON.stringify(mockUser));
-    localStorage.setItem('mockProfile', JSON.stringify(mockProfile));
+      // Store in localStorage for testing
+      localStorage.setItem('mockUser', JSON.stringify(mockUser));
+      localStorage.setItem('mockProfile', JSON.stringify(mockProfile));
 
-    // Force a page reload to trigger AuthContext to pick up the mock data
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
+      console.log('Mock login successful:', { role, userId: mockUserId });
+
+      // Force a page reload to trigger AuthContext to pick up the mock data
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error('Mock login error:', error);
+      setError('Failed to set up test environment');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const clearTestData = () => {
     localStorage.removeItem('mockUser');
     localStorage.removeItem('mockProfile');
     window.location.reload();
+  };
+
+  const directNavigate = (path) => {
+    // Force navigation even if not logged in
+    navigate(path);
   };
 
   return (
@@ -69,7 +85,7 @@ const TestScreen = () => {
             <TestTube className="text-white" size={32} />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Test Screen</h1>
-          <p className="text-gray-600">Quick access for testing purposes</p>
+          <p className="text-gray-600">Quick access for testing features</p>
         </div>
 
         {/* Current Status */}
@@ -87,9 +103,19 @@ const TestScreen = () => {
           </div>
         )}
 
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="text-red-600" size={20} />
+              <p className="text-red-800 font-medium">{error}</p>
+            </div>
+          </div>
+        )}
+
         {/* Test Actions */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 space-y-4">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Login Options</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Access</h2>
 
           <button
             onClick={() => mockLogin('student')}
@@ -108,6 +134,38 @@ const TestScreen = () => {
             <GraduationCap size={20} />
             <span>Login as Teacher</span>
           </button>
+
+          <div className="border-t border-gray-200 pt-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Direct Navigation (No Login Required)</h3>
+            
+            <button
+              onClick={() => directNavigate('/subjective-tests')}
+              className="w-full bg-purple-100 text-purple-700 font-medium py-2 px-4 rounded-lg hover:bg-purple-200 transition-colors mb-2"
+            >
+              Go to Subjective Tests
+            </button>
+
+            <button
+              onClick={() => directNavigate('/quizzes')}
+              className="w-full bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors mb-2"
+            >
+              Go to Quiz Center
+            </button>
+
+            <button
+              onClick={() => directNavigate('/documents')}
+              className="w-full bg-green-100 text-green-700 font-medium py-2 px-4 rounded-lg hover:bg-green-200 transition-colors mb-2"
+            >
+              Go to Document Hub
+            </button>
+
+            <button
+              onClick={() => directNavigate('/chat')}
+              className="w-full bg-pink-100 text-pink-700 font-medium py-2 px-4 rounded-lg hover:bg-pink-200 transition-colors"
+            >
+              Go to AI Chat
+            </button>
+          </div>
 
           <button
             onClick={() => navigate('/login')}
@@ -132,36 +190,28 @@ const TestScreen = () => {
           )}
         </div>
 
-        {/* Sample Data Info */}
-        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h3 className="font-medium text-yellow-800 mb-2">Test Data Includes:</h3>
-          <ul className="text-yellow-700 text-sm space-y-1">
-            <li>• Sample student with 250 XP and badges</li>
-            <li>• Sample teacher profile</li>
-            <li>• Mock quiz and document data</li>
-            <li>• Chat history examples</li>
-            <li>• Proper UUID format for database compatibility</li>
-          </ul>
+        {/* Instructions */}
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="font-medium text-blue-800 mb-2">How to Test Subjective Tests:</h3>
+          <ol className="text-blue-700 text-sm space-y-1 list-decimal list-inside">
+            <li>Click "Login as Teacher" to create tests</li>
+            <li>Go to "Subjective Tests" from sidebar</li>
+            <li>Create a new test with questions</li>
+            <li>Logout and "Login as Student"</li>
+            <li>Take the test by uploading images</li>
+            <li>See AI grading and teacher review features</li>
+          </ol>
         </div>
 
-        {/* Database Status */}
-        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-medium text-blue-800 mb-2">For Real Login:</h3>
-          <ul className="text-blue-700 text-sm space-y-1">
-            <li>• Click "Connect to Supabase" button (top right)</li>
-            <li>• Database tables will be created automatically</li>
-            <li>• Then you can create real accounts</li>
-          </ul>
-        </div>
-
-        {/* Network Status */}
+        {/* Feature Info */}
         <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <h3 className="font-medium text-purple-800 mb-2">AI Chat Features:</h3>
+          <h3 className="font-medium text-purple-800 mb-2">New Subjective Tests Features:</h3>
           <ul className="text-purple-700 text-sm space-y-1">
-            <li>• Powered by IBM Watsonx AI</li>
-            <li>• Works with mock data for testing</li>
-            <li>• RAG search through documents</li>
-            <li>• Educational response formatting</li>
+            <li>• Create tests with handwritten answer uploads</li>
+            <li>• AI-powered grading simulation</li>
+            <li>• Teacher review and score adjustment</li>
+            <li>• Time limits and progress tracking</li>
+            <li>• Document-based test creation</li>
           </ul>
         </div>
       </div>
